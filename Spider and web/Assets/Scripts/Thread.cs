@@ -35,7 +35,7 @@ public class Thread : MonoBehaviour
         lineRenderer.SetPositions(threadPositions);
     }
 
-    public void AddNewPoint(Vector2 coords)
+    public void AddNewPoint(Vector3 coords)
     {
         threadSegments.Add(new ThreadSegment(coords));
         Debug.Log(coords);
@@ -43,10 +43,10 @@ public class Thread : MonoBehaviour
 
     public struct ThreadSegment
     {
-        public Vector2 posNow;
-        public Vector2 posOld;
+        public Vector3 posNow;
+        public Vector3 posOld;
 
-        public ThreadSegment(Vector2 pos)
+        public ThreadSegment(Vector3 pos)
         {
             this.posNow = pos;
             this.posOld = pos;

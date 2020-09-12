@@ -123,9 +123,7 @@ public class LineBuiding : MonoBehaviour
             {
                 instructionText.text = "Watch the spider weave its web";
                 gameController.InstantiateSpider();
-                StartCoroutine(HideInstructionText());
-                noClickArea.SetActive(false);
-                gameObject.SetActive(false);
+                StartCoroutine(HideUI());
             }
         }
     }
@@ -150,9 +148,11 @@ public class LineBuiding : MonoBehaviour
         }
     }
 
-    private IEnumerator HideInstructionText()
+    private IEnumerator HideUI()
     {
         yield return new WaitForSeconds(3f);
+        noClickArea.SetActive(false);
+        gameObject.SetActive(false);
         instructionText.gameObject.SetActive(false);
     }
 }
