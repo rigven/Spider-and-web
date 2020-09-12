@@ -24,6 +24,7 @@ public class LineBuiding : MonoBehaviour
     [SerializeField] float clickAreaHeight = 0.12f;
 
     Camera camera;
+    GameController gameController;
 
     List<Vector2> firstLineCoords = new List<Vector2>();
     List<Vector2> secondLineCoords = new List<Vector2>();
@@ -32,6 +33,7 @@ public class LineBuiding : MonoBehaviour
     private void Start()
     {
         camera = FindObjectOfType<Camera>();
+        gameController = FindObjectOfType<GameController>();
     }
 
     private void OnMouseDown()
@@ -83,7 +85,7 @@ public class LineBuiding : MonoBehaviour
 
         Vector3 midpoint = new Vector3((firstPoint.x + secondPoint.x) / 2, (firstPoint.y + secondPoint.y) / 2, -2);
         // Calculating the angle of rotation
-        float hypotenuse = Mathf.Sqrt(Mathf.Pow(firstPoint.x - secondPoint.x, 2) + Mathf.Pow(firstPoint.y - secondPoint.y, 2));
+        float hypotenuse = (firstPoint - secondPoint).magnitude;
         float cathetus = firstPoint.y - secondPoint.y;
         float angle = Mathf.Acos(cathetus / hypotenuse) * 180 / Mathf.PI;   // Angle in degrees
         if (secondPoint.x < firstPoint.x)
@@ -120,7 +122,10 @@ public class LineBuiding : MonoBehaviour
             else if (secondLineCoords.Count * yStep > 2)
             {
                 instructionText.text = "Watch the spider weave its web";
+                gameController.InstantiateSpider();
                 StartCoroutine(HideInstructionText());
+                noClickArea.SetActive(false);
+                gameObject.SetActive(false);
             }
         }
     }
