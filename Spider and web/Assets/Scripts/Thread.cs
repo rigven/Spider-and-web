@@ -6,18 +6,27 @@ using UnityEngine;
 public class Thread : MonoBehaviour
 {
     private LineRenderer lineRenderer;
+    private Wind wind;
     private List<ThreadSegment> threadSegments = new List<ThreadSegment>();
     public float threadSegLen = 0.05f;
     private float threadWidth = 0.01f;
 
+    private Vector3 firstPointCoords;
+
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
+        wind = FindObjectOfType<Wind>();
     }
 
     void Update()
     {
         DrawThread();
+    }
+
+    private void FixedUpdate()
+    {
+        Simulate();
     }
 
     private void DrawThread()
@@ -35,10 +44,78 @@ public class Thread : MonoBehaviour
         lineRenderer.SetPositions(threadPositions);
     }
 
+    private void Simulate()
+    {
+        //SIMULATION
+        Vector3 forceGravity = new Vector3(0f, -1f, 0f);
+
+        for (int i = 0; i < threadSegments.Count; i++)
+        {
+            ThreadSegment segment = threadSegments[i];
+            Vector3 velocity = segment.posNow - segment.posOld;
+            segment.posOld = segment.posNow;
+            segment.posNow += velocity + forceGravity * Time.deltaTime + wind.GetSpeed() * Time.deltaTime;
+            threadSegments[i] = segment;
+        }
+
+        //CONSTRAINTS
+        for (int i = 0; i < 40; i++)
+        {
+            ApplyConstraints();
+        }
+    }
+
+    private void ApplyConstraints()
+    {
+        // Constraint (The first segment is always linked to a point)
+        ThreadSegment segment = threadSegments[0];
+        segment.posNow = firstPointCoords;
+        threadSegments[0] = segment;
+
+        // Constraint (Two points in the thread will always need to keep a certain distance apart)
+        for (int i = 0; i < threadSegments.Count - 1; i++)
+        {
+            ThreadSegment firstSegment = threadSegments[i];
+            ThreadSegment secondSegment = threadSegments[i + 1];
+
+            float dist = (firstSegment.posNow - secondSegment.posNow).magnitude;
+            float error = Mathf.Abs(dist - threadSegLen);
+            Vector3 changeDir = Vector3.zero;
+
+            if (dist > threadSegLen)
+            {
+                changeDir = (firstSegment.posNow - secondSegment.posNow).normalized;
+            }
+            else if (dist < threadSegLen)
+            {
+                changeDir = (secondSegment.posNow - firstSegment.posNow).normalized;
+            }
+
+            Vector3 changeAmount = changeDir * error;
+            if (i != 0)
+            {
+                firstSegment.posNow -= changeAmount * 0.5f;
+                threadSegments[i] = firstSegment;
+                secondSegment.posNow += changeAmount * 0.5f;
+                threadSegments[i + 1] = secondSegment;
+            }
+            else
+            {
+                secondSegment.posNow += changeAmount;
+                threadSegments[i + 1] = secondSegment;
+            }
+        }
+    }
+
     public void AddNewPoint(Vector3 coords)
     {
+        if (threadSegments.Count == 0)
+        {
+            firstPointCoords = coords;
+        }
+
         threadSegments.Add(new ThreadSegment(coords));
-        Debug.Log(coords);
+        //Debug.Log(coords);
     }
 
     public struct ThreadSegment
