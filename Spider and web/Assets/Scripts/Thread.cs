@@ -47,14 +47,14 @@ public class Thread : MonoBehaviour
     private void Simulate()
     {
         //SIMULATION
-        Vector3 forceGravity = new Vector3(0f, -1f, 0f);
+        Vector3 forceGravity = new Vector3(0f, -0.2f, 0f);
 
         for (int i = 0; i < threadSegments.Count; i++)
         {
             ThreadSegment segment = threadSegments[i];
             Vector3 velocity = segment.posNow - segment.posOld;
             segment.posOld = segment.posNow;
-            segment.posNow += velocity + forceGravity * Time.deltaTime + wind.GetSpeed() * Time.deltaTime;
+            segment.posNow += velocity + forceGravity * Time.deltaTime + wind.GetSpeed(segment.posNow.y) * Time.deltaTime;
             threadSegments[i] = segment;
         }
 
