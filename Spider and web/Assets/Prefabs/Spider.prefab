@@ -99,6 +99,7 @@ MonoBehaviour:
     type: 3}
   weavingSpeed: 0.1
   hoveringFirstPoint: 0.75
+  weight: 3
 --- !u!50 &8968477243794039134
 Rigidbody2D:
   serializedVersion: 4

@@ -8,23 +8,36 @@ public class Spider : MonoBehaviour
     [SerializeField] Thread threadPrefab;
     [SerializeField] float weavingSpeed = 0.1f;
     [SerializeField] float hoveringFirstPoint = 0.75f;
+    [SerializeField] float weight = 2f;
 
     Rigidbody2D rigidbody;
+    private Vector3 forceGravity;
+    private Wind wind;
 
     Thread currentThread;
-    Vector3 previousThreadPoint;
+    Vector3 previousThreadPoint, currentThreadPointIndex;
     int wovenThreadsNumber = 0;
     bool weavesThread = true;
 
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
+        wind = FindObjectOfType<Wind>();
+        forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
+    }
+
+    private void FixedUpdate()
+    {
+        Simulate();
+    }
+
+    private void Simulate()
+    {
+        transform.position += (forceGravity * weight + wind.GetSpeed(transform.position.y)) * Time.deltaTime;
     }
 
     void Update()
     {
-        rigidbody = GetComponent<Rigidbody2D>();
-
         Move();
         WeaveThread();
     }
@@ -44,6 +57,8 @@ public class Spider : MonoBehaviour
 
         if (transform.position.y < hoveringFirstPoint)
         {
+            weavesThread = false;
+            currentThread.SetSpiderIsAttached(true);
             rigidbody.velocity = new Vector2(0f, 0f);
         }
     }

@@ -7,16 +7,22 @@ public class Thread : MonoBehaviour
 {
     private LineRenderer lineRenderer;
     private Wind wind;
+    private Vector3 forceGravity;
+
     private List<ThreadSegment> threadSegments = new List<ThreadSegment>();
     public float threadSegLen = 0.05f;
     private float threadWidth = 0.01f;
 
     private Vector3 firstPointCoords;
 
+    //TEMP
+    bool spiderIsAttached = false;
+
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
         wind = FindObjectOfType<Wind>();
+        forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
     }
 
     void Update()
@@ -47,8 +53,6 @@ public class Thread : MonoBehaviour
     private void Simulate()
     {
         //SIMULATION
-        Vector3 forceGravity = new Vector3(0f, -0.2f, 0f);
-
         for (int i = 0; i < threadSegments.Count; i++)
         {
             ThreadSegment segment = threadSegments[i];
@@ -86,7 +90,7 @@ public class Thread : MonoBehaviour
             {
                 changeDir = (firstSegment.posNow - secondSegment.posNow).normalized;
             }
-            else if (dist < threadSegLen)
+            else /*if (dist < threadSegLen)*/
             {
                 changeDir = (secondSegment.posNow - firstSegment.posNow).normalized;
             }
@@ -105,6 +109,10 @@ public class Thread : MonoBehaviour
                 threadSegments[i + 1] = secondSegment;
             }
         }
+        if (spiderIsAttached)
+        {
+            Attach(FindObjectOfType<Spider>());
+        }
     }
 
     public void AddNewPoint(Vector3 coords)
@@ -115,7 +123,26 @@ public class Thread : MonoBehaviour
         }
 
         threadSegments.Add(new ThreadSegment(coords));
-        //Debug.Log(coords);
+    }
+
+    public void SetSpiderIsAttached(bool isAttached)    //TODO: delete this after the correct weaving of the web appears
+    {
+        spiderIsAttached = isAttached;
+    }
+
+    private void Attach(Spider spider)
+    {
+        ThreadSegment threadSegment = threadSegments[threadSegments.Count - 1];
+
+        float dist = (spider.transform.position - threadSegment.posNow).magnitude;
+
+        Vector3 changeDir = (spider.transform.position - threadSegment.posNow).normalized;
+        Vector3 changeAmount = changeDir * dist;
+
+        spider.transform.position -= changeAmount * 0.5f;
+        threadSegment.posNow += changeAmount * 0.5f;
+
+        threadSegments[threadSegments.Count - 1] = threadSegment;
     }
 
     public struct ThreadSegment
