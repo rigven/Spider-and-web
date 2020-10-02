@@ -5,21 +5,19 @@ using UnityEngine;
 
 public class Wind : MonoBehaviour
 {
-    //TODO Delete this. Change to 1 point
-    [SerializeField] GameObject pointPrefab;
-    List<GameObject> drawnPoints = new List<GameObject>();
-    GameObject drawnPoint;
-    float opacity;
+    // Config params
+    [SerializeField] private GameObject _pointPrefab;
+    private const int AccelerationTime = 3;
 
-    private float speed = 0f;
-    private float amplitude = 0f;
-    private float stepFactor = 0f;
-    const int accelerationTime = 3;
-
-    private float lowerEdge = 0f;
-    private float upperEdge = 0f;
-    private float lowerEdgeCoeff = 0f;
-    private float upperEdgeCoeff = 0f;
+    // State
+    private float _speed = 0f;
+    private float _amplitude = 0f;
+    private float _stepFactor = 0f;
+    // Drawing state
+    protected float _lowerEdge = 0f;
+    protected float _upperEdge = 0f;
+    protected float _lowerEdgeCoeff = 0f;
+    protected float _upperEdgeCoeff = 0f;
 
     // Wind power is determined by a value from 0 to 1. 
     // Edges of the wind (y1 and y2) are generated randomly.
@@ -51,98 +49,61 @@ public class Wind : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(3, 15));
-            EraseWindIndicator();
-            amplitude = UnityEngine.Random.Range(-1f, 1f);
-            stepFactor = Mathf.Abs(speed - amplitude) / accelerationTime * Mathf.Sign(amplitude);
+            yield return new WaitForSeconds(UnityEngine.Random.Range(3, 20));
+            WindIndicatorDrawer.EraseWindIndicator();
+            _amplitude = UnityEngine.Random.Range(-1f, 1f);
+            _stepFactor = Mathf.Abs(_speed - _amplitude) / AccelerationTime * Mathf.Sign(_amplitude);
 
-            lowerEdge = UnityEngine.Random.Range(0f, 2f);
-            upperEdge = UnityEngine.Random.Range(lowerEdge, Mathf.Min(2f, lowerEdge + 0.3f));
+            _lowerEdge = UnityEngine.Random.Range(0f, 2f);
+            _upperEdge = UnityEngine.Random.Range(_lowerEdge, Mathf.Min(2f, _lowerEdge + 0.3f));
 
-            DrawWindIndicator();
-        }
-    }
-
-    private void EraseWindIndicator()       //TODO: Delete in the final version
-    {
-        foreach (GameObject tPoint in drawnPoints)
-        {
-            Destroy(tPoint);
-        }
-        drawnPoints = new List<GameObject>();
-    }
-
-    private void DrawWindIndicator()       //TODO: Delete in the final version
-    {
-        lowerEdgeCoeff = 1f / lowerEdge;
-        upperEdgeCoeff = -1f / (upperEdge - 2f);
-
-        for (float i = 0f; i <= 2f; i += 0.05f)
-        {
-            if (i >= lowerEdge && i <= upperEdge)
-            {
-                opacity = 1f;
-            }
-            else
-            {
-                if (i < lowerEdge)
-                {
-                    opacity = lowerEdgeCoeff * i;
-                }
-                else
-                {
-                    opacity = -upperEdgeCoeff * (i - 2);
-                }
-            }
-            drawnPoint = Instantiate(pointPrefab, new Vector3(0.1f, i, -4f), Quaternion.identity);
-            drawnPoints.Add(drawnPoint);
-            drawnPoint.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, opacity);
+            WindIndicatorDrawer.DrawWindIndicator(_lowerEdge, _upperEdge, _lowerEdgeCoeff, _upperEdgeCoeff, _pointPrefab);
         }
     }
 
     private void ChangeSpeed()
     {
-        float error = float.Epsilon + Mathf.Abs(stepFactor) * Time.deltaTime;
+        float error = float.Epsilon + Mathf.Abs(_stepFactor) * Time.deltaTime;
 
         // If speed and amplitude are close to zero
-        if (Mathf.Abs(speed) < error && Mathf.Abs(amplitude) < error)
+        if (Mathf.Abs(_speed) < error && Mathf.Abs(_amplitude) < error)
         {
             return;
         }
 
-        if (Mathf.Abs(amplitude) > Mathf.Abs(speed))
+        if (Mathf.Abs(_amplitude) > Mathf.Abs(_speed))
         {
-            speed += Time.deltaTime * stepFactor;
+            _speed += Time.deltaTime * _stepFactor;
         }
         else
         {
-            amplitude = 0f;
-            speed -= Time.deltaTime * stepFactor;
+            _amplitude = 0f;
+            _speed -= Time.deltaTime * _stepFactor;
         }
     }
 
 
     public Vector3 GetSpeed(float y)
     {
-        return new Vector3(speed * GetPower(y), 0f, 0f);
+        return new Vector3(_speed * GetPower(y), 0f, 0f);
     }
 
     private float GetPower(float y)
     {
-        lowerEdgeCoeff = 1f / lowerEdge;
-        upperEdgeCoeff = -1f / (upperEdge - 2f);
+        _lowerEdgeCoeff = 1f / _lowerEdge;
+        _upperEdgeCoeff = -1f / (_upperEdge - 2f);
 
-        if (y >= lowerEdge && y <= upperEdge)
+        if (y >= _lowerEdge && y <= _upperEdge)
         {
             return 1f;
         }
 
-        if (y < lowerEdge)
+        if (y < _lowerEdge)
         {
-            return lowerEdgeCoeff * y;
+            return _lowerEdgeCoeff * y;
         }
 
-        return -upperEdgeCoeff * (y - 2);
+        return -_upperEdgeCoeff * (y - 2);
 
     }
 }

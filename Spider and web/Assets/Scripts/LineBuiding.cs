@@ -6,57 +6,60 @@ using System;
 
 public class LineBuiding : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI instructionText;
-    [SerializeField] GameObject noClickArea;
+    // Cached component references
+    private Camera _camera;
+    private GameController _gameController;
+
+    // Config params
+    [SerializeField] private TextMeshProUGUI _instructionText;
+    [SerializeField] private GameObject _noClickArea;
     [Header("Segment prefabs")]
-    [SerializeField] GameObject firstSegmentPrefab;
-    [SerializeField] GameObject secondSegmentPrefab;
+    [SerializeField] private GameObject _firstSegmentPrefab;
+    [SerializeField] private GameObject _secondSegmentPrefab;
     [Header("Line parents")]
-    [SerializeField] GameObject firstLineParent;
-    [SerializeField] GameObject secondLineParent;
+    [SerializeField] private GameObject _firstLineParent;
+    [SerializeField] private GameObject _secondLineParent;
     [Header("Line building properties")]
-    [SerializeField] float yStep = 0.25f;
-    [SerializeField] float minDistanceBetweenLines = 0.5f;
+    [SerializeField] private float _yStep = 0.25f;
+    [SerializeField] private float _minDistanceBetweenLines = 0.5f;
     [Header("Other sizes")]
-    [SerializeField] float screenLength = 3.6f;
-    [SerializeField] float screenHeight = 2f;
-    [SerializeField] float clickAreaLength = 0.6f;
-    [SerializeField] float clickAreaHeight = 0.12f;
+    [SerializeField] private float _screenLength = 3.6f;
+    [SerializeField] private float _screenHeight = 2f;
+    [SerializeField] private float _clickAreaLength = 0.6f;
+    [SerializeField] private float _clickAreaHeight = 0.12f;
 
-    Camera camera;
-    GameController gameController;
-
-    List<Vector2> firstLineCoords = new List<Vector2>();
-    List<Vector2> secondLineCoords = new List<Vector2>();
-    bool firstLineIsReady;
+    // State
+    private List<Vector2> _firstLineCoords = new List<Vector2>();
+    private List<Vector2> _secondLineCoords = new List<Vector2>();
+    private bool _firstLineIsReady;
 
     private void Start()
     {
-        camera = FindObjectOfType<Camera>();
-        gameController = FindObjectOfType<GameController>();
+        _camera = FindObjectOfType<Camera>();
+        _gameController = FindObjectOfType<GameController>();
     }
 
     private void OnMouseDown()
     {
-        if (!firstLineIsReady)
+        if (!_firstLineIsReady)
         {
-            DrawLine(firstLineCoords);
+            DrawLine(_firstLineCoords);
         }
         else
         {
-            ChangeSizeOfNoClickArea(secondLineCoords.Count + 1);
-            DrawLine(secondLineCoords);
+            ChangeSizeOfNoClickArea(_secondLineCoords.Count + 1);
+            DrawLine(_secondLineCoords);
         }
     }
 
     private void DrawLine(List<Vector2> coords)
     {
-        coords.Add(camera.ScreenToWorldPoint(new Vector2(Input.mousePosition.x, Input.mousePosition.y)));
+        coords.Add(_camera.ScreenToWorldPoint(new Vector2(Input.mousePosition.x, Input.mousePosition.y)));
         MoveClickAreaDown();
 
         if (coords.Count == 1)
         {
-            instructionText.text = "Select the next point";
+            _instructionText.text = "Select the next point";
             return;
         }
 
@@ -67,16 +70,16 @@ public class LineBuiding : MonoBehaviour
 
     private void MoveClickAreaDown()
     {
-        if (!firstLineIsReady)
+        if (!_firstLineIsReady)
         {
-            transform.position = new Vector2(firstLineCoords[firstLineCoords.Count - 1].x, transform.position.y - yStep);
+            transform.position = new Vector2(_firstLineCoords[_firstLineCoords.Count - 1].x, transform.position.y - _yStep);
         }
         else
         {
-            transform.position = new Vector2(secondLineCoords[secondLineCoords.Count - 1].x, transform.position.y - yStep);
+            transform.position = new Vector2(_secondLineCoords[_secondLineCoords.Count - 1].x, transform.position.y - _yStep);
         }
         
-        transform.localScale = new Vector2(clickAreaLength, transform.localScale.y);
+        transform.localScale = new Vector2(_clickAreaLength, transform.localScale.y);
     }
 
     private void DrawSegment(Vector2 firstPoint, Vector2 secondPoint)
@@ -93,15 +96,15 @@ public class LineBuiding : MonoBehaviour
             angle *= -1;
         }
 
-        if (!firstLineIsReady)
+        if (!_firstLineIsReady)
         {
-            newSegment = Instantiate(firstSegmentPrefab, midpoint, Quaternion.Euler(0f, 0f, angle));
-            newSegment.transform.parent = firstLineParent.transform;
+            newSegment = Instantiate(_firstSegmentPrefab, midpoint, Quaternion.Euler(0f, 0f, angle));
+            newSegment.transform.parent = _firstLineParent.transform;
         }
         else
         {
-            newSegment = Instantiate(secondSegmentPrefab, midpoint, Quaternion.Euler(0f, 0f, angle));
-            newSegment.transform.parent = secondLineParent.transform;
+            newSegment = Instantiate(_secondSegmentPrefab, midpoint, Quaternion.Euler(0f, 0f, angle));
+            newSegment.transform.parent = _secondLineParent.transform;
         }
 
     }
@@ -109,20 +112,20 @@ public class LineBuiding : MonoBehaviour
     private void TryFinishLine()
     {
         // If first line is finished
-        if (firstLineCoords.Count * yStep > 2)
+        if (_firstLineCoords.Count * _yStep > 2)
         {
             // If the first line is not marked as finished yet
-            if (!firstLineIsReady)
+            if (!_firstLineIsReady)
             {
-                firstLineIsReady = true;
-                instructionText.text = "Select the starting point of the second line";
+                _firstLineIsReady = true;
+                _instructionText.text = "Select the starting point of the second line";
                 MoveAreasForSecondLine();
             }
             // If second line is finished too
-            else if (secondLineCoords.Count * yStep > 2)
+            else if (_secondLineCoords.Count * _yStep > 2)
             {
-                instructionText.text = "Watch the spider weave its web";
-                gameController.InstantiateSpider();
+                _instructionText.text = "Watch the spider weave its web";
+                _gameController.InstantiateSpider();
                 StartCoroutine(HideUI());
             }
         }
@@ -130,10 +133,10 @@ public class LineBuiding : MonoBehaviour
     
     private void MoveAreasForSecondLine()
     {
-        transform.position = new Vector2(screenLength / 2, screenHeight);
-        transform.localScale = new Vector2(screenLength, clickAreaHeight);
+        transform.position = new Vector2(_screenLength / 2, _screenHeight);
+        transform.localScale = new Vector2(_screenLength, _clickAreaHeight);
 
-        noClickArea.transform.position = new Vector3(screenLength, screenHeight / 2, -0.5f);
+        _noClickArea.transform.position = new Vector3(_screenLength, _screenHeight / 2, -0.5f);
         ChangeSizeOfNoClickArea(0);
     }
 
@@ -142,17 +145,17 @@ public class LineBuiding : MonoBehaviour
     /// </summary>
     private void ChangeSizeOfNoClickArea(int pointNumber)
     {
-        if (pointNumber <= firstLineCoords.Count - 1)
+        if (pointNumber <= _firstLineCoords.Count - 1)
         {
-            noClickArea.transform.localScale = new Vector2((screenLength - firstLineCoords[pointNumber].x + minDistanceBetweenLines) * 2, noClickArea.transform.localScale.y);
+            _noClickArea.transform.localScale = new Vector2((_screenLength - _firstLineCoords[pointNumber].x + _minDistanceBetweenLines) * 2, _noClickArea.transform.localScale.y);
         }
     }
 
     private IEnumerator HideUI()
     {
         yield return new WaitForSeconds(3f);
-        noClickArea.SetActive(false);
+        _noClickArea.SetActive(false);
         gameObject.SetActive(false);
-        instructionText.gameObject.SetActive(false);
+        _instructionText.gameObject.SetActive(false);
     }
 }

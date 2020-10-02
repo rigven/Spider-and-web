@@ -5,24 +5,29 @@ using UnityEngine;
 
 public class Thread : MonoBehaviour
 {
-    private LineRenderer lineRenderer;
-    private Wind wind;
-    private Vector3 forceGravity;
+    // Cached component references
+    private LineRenderer _lineRenderer;
+    private Spider _spider;
+    private Wind _wind;
+    private Vector3 _forceGravity;
 
-    private List<ThreadSegment> threadSegments = new List<ThreadSegment>();
-    public float threadSegLen = 0.05f;
-    private float threadWidth = 0.01f;
+    // Config params
+    public const float ThreadSegLen = 0.05f;
+    private const float ThreadWidth = 0.01f;
 
-    private Vector3 firstPointCoords;
+    // State
+    private List<ThreadSegment> _threadSegments = new List<ThreadSegment>();
+    private Vector3 _firstPointCoords;
 
-    //TEMP
-    bool spiderIsAttached = false;
+    // TEMP
+    bool _spiderIsAttached = false;
 
     void Start()
     {
-        lineRenderer = GetComponent<LineRenderer>();
-        wind = FindObjectOfType<Wind>();
-        forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
+        _lineRenderer = GetComponent<LineRenderer>();
+        _spider = FindObjectOfType<Spider>();
+        _wind = FindObjectOfType<Wind>();
+        _forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
     }
 
     void Update()
@@ -37,29 +42,29 @@ public class Thread : MonoBehaviour
 
     private void DrawThread()
     {
-        lineRenderer.startWidth = threadWidth;
-        lineRenderer.endWidth = threadWidth;
+        _lineRenderer.startWidth = ThreadWidth;
+        _lineRenderer.endWidth = ThreadWidth;
 
-        Vector3[] threadPositions = new Vector3[threadSegments.Count];
-        for (int i = 0; i < threadSegments.Count; i++)
+        Vector3[] threadPositions = new Vector3[_threadSegments.Count];
+        for (int i = 0; i < _threadSegments.Count; i++)
         {
-            threadPositions[i] = threadSegments[i].posNow;
+            threadPositions[i] = _threadSegments[i].PosNow;
         }
 
-        lineRenderer.positionCount = threadPositions.Length;
-        lineRenderer.SetPositions(threadPositions);
+        _lineRenderer.positionCount = threadPositions.Length;
+        _lineRenderer.SetPositions(threadPositions);
     }
 
     private void Simulate()
     {
         //SIMULATION
-        for (int i = 0; i < threadSegments.Count; i++)
+        for (int i = 0; i < _threadSegments.Count; i++)
         {
-            ThreadSegment segment = threadSegments[i];
-            Vector3 velocity = segment.posNow - segment.posOld;
-            segment.posOld = segment.posNow;
-            segment.posNow += velocity + forceGravity * Time.deltaTime + wind.GetSpeed(segment.posNow.y) * Time.deltaTime;
-            threadSegments[i] = segment;
+            ThreadSegment segment = _threadSegments[i];
+            Vector3 velocity = segment.PosNow - segment.PosOld;
+            segment.PosOld = segment.PosNow;
+            segment.PosNow += velocity + _forceGravity * Time.deltaTime + _wind.GetSpeed(segment.PosNow.y) * Time.deltaTime;
+            _threadSegments[i] = segment;
         }
 
         //CONSTRAINTS
@@ -72,88 +77,88 @@ public class Thread : MonoBehaviour
     private void ApplyConstraints()
     {
         // Constraint (The first segment is always linked to a point)
-        ThreadSegment segment = threadSegments[0];
-        segment.posNow = firstPointCoords;
-        threadSegments[0] = segment;
+        ThreadSegment segment = _threadSegments[0];
+        segment.PosNow = _firstPointCoords;
+        _threadSegments[0] = segment;
 
         // Constraint (Two points in the thread will always need to keep a certain distance apart)
-        for (int i = 0; i < threadSegments.Count - 1; i++)
+        for (int i = 0; i < _threadSegments.Count - 1; i++)
         {
-            ThreadSegment firstSegment = threadSegments[i];
-            ThreadSegment secondSegment = threadSegments[i + 1];
+            ThreadSegment firstSegment = _threadSegments[i];
+            ThreadSegment secondSegment = _threadSegments[i + 1];
 
-            float dist = (firstSegment.posNow - secondSegment.posNow).magnitude;
-            float error = Mathf.Abs(dist - threadSegLen);
+            float dist = (firstSegment.PosNow - secondSegment.PosNow).magnitude;
+            float error = Mathf.Abs(dist - ThreadSegLen);
             Vector3 changeDir = Vector3.zero;
 
-            if (dist > threadSegLen)
+            if (dist > ThreadSegLen)
             {
-                changeDir = (firstSegment.posNow - secondSegment.posNow).normalized;
+                changeDir = (firstSegment.PosNow - secondSegment.PosNow).normalized;
             }
-            else /*if (dist < threadSegLen)*/
+            else
             {
-                changeDir = (secondSegment.posNow - firstSegment.posNow).normalized;
+                changeDir = (secondSegment.PosNow - firstSegment.PosNow).normalized;
             }
 
             Vector3 changeAmount = changeDir * error;
             if (i != 0)
             {
-                firstSegment.posNow -= changeAmount * 0.5f;
-                threadSegments[i] = firstSegment;
-                secondSegment.posNow += changeAmount * 0.5f;
-                threadSegments[i + 1] = secondSegment;
+                firstSegment.PosNow -= changeAmount * 0.5f;
+                _threadSegments[i] = firstSegment;
+                secondSegment.PosNow += changeAmount * 0.5f;
+                _threadSegments[i + 1] = secondSegment;
             }
             else
             {
-                secondSegment.posNow += changeAmount;
-                threadSegments[i + 1] = secondSegment;
+                secondSegment.PosNow += changeAmount;
+                _threadSegments[i + 1] = secondSegment;
             }
         }
-        if (spiderIsAttached)
+        if (_spiderIsAttached)
         {
-            Attach(FindObjectOfType<Spider>());
+            Attach(_spider);
         }
     }
 
     public void AddNewPoint(Vector3 coords)
     {
-        if (threadSegments.Count == 0)
+        if (_threadSegments.Count == 0)
         {
-            firstPointCoords = coords;
+            _firstPointCoords = coords;
         }
 
-        threadSegments.Add(new ThreadSegment(coords));
+        _threadSegments.Add(new ThreadSegment(coords));
     }
 
     public void SetSpiderIsAttached(bool isAttached)    //TODO: delete this after the correct weaving of the web appears
     {
-        spiderIsAttached = isAttached;
+        _spiderIsAttached = isAttached;
     }
 
     private void Attach(Spider spider)
     {
-        ThreadSegment threadSegment = threadSegments[threadSegments.Count - 1];
+        ThreadSegment threadSegment = _threadSegments[_threadSegments.Count - 1];
 
-        float dist = (spider.transform.position - threadSegment.posNow).magnitude;
+        float dist = (spider.transform.position - threadSegment.PosNow).magnitude;
 
-        Vector3 changeDir = (spider.transform.position - threadSegment.posNow).normalized;
+        Vector3 changeDir = (spider.transform.position - threadSegment.PosNow).normalized;
         Vector3 changeAmount = changeDir * dist;
 
         spider.transform.position -= changeAmount * 0.5f;
-        threadSegment.posNow += changeAmount * 0.5f;
+        threadSegment.PosNow += changeAmount * 0.5f;
 
-        threadSegments[threadSegments.Count - 1] = threadSegment;
+        _threadSegments[_threadSegments.Count - 1] = threadSegment;
     }
 
     public struct ThreadSegment
     {
-        public Vector3 posNow;
-        public Vector3 posOld;
+        public Vector3 PosNow;
+        public Vector3 PosOld;
 
         public ThreadSegment(Vector3 pos)
         {
-            this.posNow = pos;
-            this.posOld = pos;
+            this.PosNow = pos;
+            this.PosOld = pos;
         }
     }
 }

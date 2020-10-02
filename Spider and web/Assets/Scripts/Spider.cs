@@ -5,25 +5,29 @@ using UnityEngine;
 
 public class Spider : MonoBehaviour
 {
-    [SerializeField] Thread threadPrefab;
-    [SerializeField] float weavingSpeed = 0.1f;
-    [SerializeField] float hoveringFirstPoint = 0.75f;
-    [SerializeField] float weight = 2f;
+    // Cached component references
+    private Rigidbody2D _rigidbody;
+    private Vector3 _forceGravity;
+    private Wind _wind;
 
-    Rigidbody2D rigidbody;
-    private Vector3 forceGravity;
-    private Wind wind;
+    // Config params
+    [SerializeField] private Thread _threadPrefab;
+    private const float DescentSpeed = 0.1f;
+    private const float HoveringFirstPoint = 0.75f;
+    private const float Weight = 0.5f;
 
-    Thread currentThread;
-    Vector3 previousThreadPoint, currentThreadPointIndex;
-    int wovenThreadsNumber = 0;
-    bool weavesThread = true;
+    // State
+    private Thread _currentThread;
+    private Vector3 _previousThreadPoint;
+    private int _wovenThreadsNumber = 0;
+    private bool _weavesThread = true;
+    private float _shiftFromLastPoint = 0f;
 
     void Start()
     {
-        rigidbody = GetComponent<Rigidbody2D>();
-        wind = FindObjectOfType<Wind>();
-        forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
+        _rigidbody = GetComponent<Rigidbody2D>();
+        _wind = FindObjectOfType<Wind>();
+        _forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
     }
 
     private void FixedUpdate()
@@ -33,7 +37,7 @@ public class Spider : MonoBehaviour
 
     private void Simulate()
     {
-        transform.position += (forceGravity * weight + wind.GetSpeed(transform.position.y)) * Time.deltaTime;
+        transform.position += (_forceGravity * Weight + _wind.GetSpeed(transform.position.y)) * Time.deltaTime;
     }
 
     void Update()
@@ -45,7 +49,7 @@ public class Spider : MonoBehaviour
     private void Move()
     {
         // Initial descent down
-        if (wovenThreadsNumber == 0)
+        if (_wovenThreadsNumber == 0)
         {
             GoDownFromCeiling();
         }
@@ -53,35 +57,37 @@ public class Spider : MonoBehaviour
 
     private void GoDownFromCeiling()
     {
-        rigidbody.velocity = new Vector2(0f, -weavingSpeed);
+        _rigidbody.velocity = new Vector2(0f, -DescentSpeed);
 
-        if (transform.position.y < hoveringFirstPoint)
+        if (transform.position.y < HoveringFirstPoint)
         {
-            weavesThread = false;
-            currentThread.SetSpiderIsAttached(true);
-            rigidbody.velocity = new Vector2(0f, 0f);
+            _weavesThread = false;
+            _currentThread.SetSpiderIsAttached(true);
+            _rigidbody.velocity = new Vector2(0f, 0f);
         }
     }
 
     private void WeaveThread()
     {
-        if (weavesThread)
+        if (_weavesThread)
         {
-            if (currentThread == null)
+            if (_currentThread == null)
             {
-                currentThread = InstantiateNewThread();
+                _currentThread = InstantiateNewThread();
             }
 
-            if ((transform.position - previousThreadPoint).magnitude >= currentThread.threadSegLen)
+            if ((transform.position - _previousThreadPoint).magnitude >= Thread.ThreadSegLen)
             {
-                currentThread.AddNewPoint(transform.position);
-                previousThreadPoint = transform.position;
+                _currentThread.AddNewPoint(transform.position);
+                _previousThreadPoint = transform.position;
             }
         }
     }
 
     private Thread InstantiateNewThread()
     {
-        return Instantiate(threadPrefab, transform.position, Quaternion.identity);
+        return Instantiate(_threadPrefab, transform.position, Quaternion.identity);
     }
+
+    
 }
