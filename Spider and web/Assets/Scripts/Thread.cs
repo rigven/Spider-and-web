@@ -7,6 +7,7 @@ public class Thread : MonoBehaviour
 {
     // Cached component references
     private LineRenderer _lineRenderer;
+    private EdgeCollider2D _edgeCollider2D;
     private Spider _spider;
     private Wind _wind;
     private Vector3 _forceGravity;
@@ -26,6 +27,7 @@ public class Thread : MonoBehaviour
     void Start()
     {
         _lineRenderer = GetComponent<LineRenderer>();
+        _edgeCollider2D = GetComponent<EdgeCollider2D>();
         _spider = FindObjectOfType<Spider>();
         _wind = FindObjectOfType<Wind>();
         _forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
@@ -34,6 +36,7 @@ public class Thread : MonoBehaviour
     void Update()
     {
         DrawThread();
+        ApplyCollider();
     }
 
     private void FixedUpdate()
@@ -121,21 +124,6 @@ public class Thread : MonoBehaviour
         }
     }
 
-    public void AddNewPoint(Vector3 coords)
-    {
-        if (_threadSegments.Count == 0)
-        {
-            _firstPointCoords = coords;
-        }
-
-        _threadSegments.Add(new ThreadSegment(coords));
-    }
-
-    public void SetSpiderIsAttached(bool isAttached)    //TODO: delete this after the correct weaving of the web appears
-    {
-        _spiderIsAttached = isAttached;
-    }
-
     private void Attach(Spider spider)
     {
         ThreadSegment threadSegment = _threadSegments[_threadSegments.Count - 1];
@@ -149,6 +137,31 @@ public class Thread : MonoBehaviour
         threadSegment.PosNow += changeAmount * 0.5f;
 
         _threadSegments[_threadSegments.Count - 1] = threadSegment;
+    }
+
+    private void ApplyCollider()
+    {
+        Vector2[] pointLocations = new Vector2[_threadSegments.Count];
+        for (int i = 0; i < _threadSegments.Count; i++)
+        {
+            pointLocations[i] = _threadSegments[i].PosNow;
+        }
+        _edgeCollider2D.points = pointLocations;
+    }
+
+    public void AddNewPoint(Vector3 coords)
+    {
+        if (_threadSegments.Count == 0)
+        {
+            _firstPointCoords = coords;
+        }
+
+        _threadSegments.Add(new ThreadSegment(coords));
+    }
+
+    public void SetSpiderIsAttached(bool isAttached)    //TODO: delete this after the correct weaving of the web appears
+    {
+        _spiderIsAttached = isAttached;
     }
 
     public bool CheckLastPointFluctuations()
