@@ -89,5 +89,8 @@ public class Spider : MonoBehaviour
         return Instantiate(_threadPrefab, transform.position, Quaternion.identity);
     }
 
-    
+    public Thread GetCurrentThread()
+    {
+        return _currentThread;
+    }
 }

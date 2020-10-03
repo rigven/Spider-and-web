@@ -97,6 +97,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _threadPrefab: {fileID: 8205222137853616116, guid: 06def7d1d0dd27b4ab0ab00d79dda416,
     type: 3}
+  _danglingThreadPrefab: {fileID: 2611567050696068205, guid: 71acf12d3cfac0d459f18f4301e1e5bd,
+    type: 3}
 --- !u!50 &8968477243794039134
 Rigidbody2D:
   serializedVersion: 4

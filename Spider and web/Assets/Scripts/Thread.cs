@@ -14,9 +14,10 @@ public class Thread : MonoBehaviour
     // Config params
     public const float ThreadSegLen = 0.05f;
     private const float ThreadWidth = 0.01f;
+    private const float MinFluctuation = 0.0005f;
 
     // State
-    private List<ThreadSegment> _threadSegments = new List<ThreadSegment>();
+    protected List<ThreadSegment> _threadSegments = new List<ThreadSegment>();
     private Vector3 _firstPointCoords;
 
     // TEMP
@@ -148,6 +149,11 @@ public class Thread : MonoBehaviour
         threadSegment.PosNow += changeAmount * 0.5f;
 
         _threadSegments[_threadSegments.Count - 1] = threadSegment;
+    }
+
+    public bool CheckLastPointFluctuations()
+    {
+        return Mathf.Abs((_threadSegments[_threadSegments.Count - 1].PosNow - _threadSegments[_threadSegments.Count - 1].PosOld).magnitude) > MinFluctuation;
     }
 
     public struct ThreadSegment
