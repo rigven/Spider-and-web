@@ -42,6 +42,7 @@ public class WindIndicatorDrawer : MonoBehaviour
                 }
             }
             _drawnPoint = Instantiate(pointPrefab, new Vector3(0.1f, i, -4f), Quaternion.identity);
+            _drawnPoint.transform.parent = GameObject.FindGameObjectWithTag("Wind Indicator").transform;
             _drawnPoints.Add(_drawnPoint);
             _drawnPoint.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, _opacity);
         }

@@ -13,12 +13,13 @@ public class Thread : MonoBehaviour
     private Vector3 _forceGravity;
 
     // Config params
-    public const float ThreadSegLen = 0.05f;
+    public const float ThreadSegLen = 0.03f;
     private const float ThreadWidth = 0.01f;
     private const float MinFluctuation = 0.0005f;
 
     // State
-    protected List<ThreadSegment> _threadSegments = new List<ThreadSegment>();
+    private List<ThreadSegment> _threadSegments = new List<ThreadSegment>();
+    private Dictionary<int, Vector3> _attachedPoints = new Dictionary<int, Vector3>();
     private Vector3 _firstPointCoords;
 
     // TEMP
@@ -80,10 +81,13 @@ public class Thread : MonoBehaviour
 
     private void ApplyConstraints()
     {
-        // Constraint (The first segment is always linked to a point)
-        ThreadSegment segment = _threadSegments[0];
-        segment.PosNow = _firstPointCoords;
-        _threadSegments[0] = segment;
+        // Constraint (Attaching the web to fixed points)
+        foreach (KeyValuePair<int, Vector3> pointCoords in _attachedPoints)
+        {
+            ThreadSegment segment = _threadSegments[pointCoords.Key];
+            segment.PosNow = pointCoords.Value;
+            _threadSegments[pointCoords.Key] = segment;
+        }
 
         // Constraint (Two points in the thread will always need to keep a certain distance apart)
         for (int i = 0; i < _threadSegments.Count - 1; i++)
@@ -124,6 +128,31 @@ public class Thread : MonoBehaviour
         }
     }
 
+
+    private void ApplyCollider()
+    {
+        List<Vector2> pointLocations = new List<Vector2>();
+        for (int i = 0; i < _threadSegments.Count; i++)
+        {
+            if (!_attachedPoints.ContainsKey(i))         // Ignore the already attached points
+                pointLocations.Add(_threadSegments[i].PosNow - transform.position);
+        }
+        _edgeCollider2D.points = pointLocations.ToArray();
+    }
+
+    public void AddNewPoint(Vector3 coords)
+    {
+        if (_threadSegments.Count == 0)
+        {
+            Attach(0, coords);
+        }
+
+        _threadSegments.Add(new ThreadSegment(coords));
+    }
+
+    /// <summary>
+    /// Attaches the spider to the web.
+    /// </summary>
     private void Attach(Spider spider)
     {
         ThreadSegment threadSegment = _threadSegments[_threadSegments.Count - 1];
@@ -139,24 +168,33 @@ public class Thread : MonoBehaviour
         _threadSegments[_threadSegments.Count - 1] = threadSegment;
     }
 
-    private void ApplyCollider()
+    /// <summary>
+    /// Attaches the web to a fixed point.
+    /// </summary>
+    private void Attach(int pointNumber, Vector3 pointCoords)
     {
-        Vector2[] pointLocations = new Vector2[_threadSegments.Count];
-        for (int i = 0; i < _threadSegments.Count; i++)
-        {
-            pointLocations[i] = _threadSegments[i].PosNow;
-        }
-        _edgeCollider2D.points = pointLocations;
+        _attachedPoints[pointNumber] = pointCoords;
     }
 
-    public void AddNewPoint(Vector3 coords)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (_threadSegments.Count == 0)
-        {
-            _firstPointCoords = coords;
-        }
+        AttachWebToLine(collision);
+    }
 
-        _threadSegments.Add(new ThreadSegment(coords));
+    private void AttachWebToLine(Collision2D collision)
+    {
+        int closestPointNumber = 0;
+        float minDistance = float.MaxValue;
+        for (int i = _threadSegments.Count - 1; i >= 0; i--)
+        {
+            float webPointToContactDistance = Vector3.Distance(_threadSegments[i].PosNow, collision.contacts[0].point);
+            if (webPointToContactDistance < minDistance)
+            {
+                minDistance = webPointToContactDistance;
+                closestPointNumber = i;
+            }
+        }
+        Attach(closestPointNumber, collision.contacts[0].point);
     }
 
     public void SetSpiderIsAttached(bool isAttached)    //TODO: delete this after the correct weaving of the web appears

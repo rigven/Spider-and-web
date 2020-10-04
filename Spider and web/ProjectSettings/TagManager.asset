@@ -6,6 +6,7 @@ TagManager:
   tags:
   - First Line
   - Second Line
+  - Wind Indicator
   layers:
   - Default
   - TransparentFX
@@ -15,8 +16,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Line
+  - Thread
   - 
   - 
   - 
