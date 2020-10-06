@@ -8,7 +8,7 @@ public class LineBuiding : MonoBehaviour
 {
     // Cached component references
     private Camera _camera;
-    private GameController _gameController;
+    private SpiderSpawner _spiderSpawner;
 
     // Config params
     [SerializeField] private TextMeshProUGUI _instructionText;
@@ -36,7 +36,7 @@ public class LineBuiding : MonoBehaviour
     private void Start()
     {
         _camera = FindObjectOfType<Camera>();
-        _gameController = FindObjectOfType<GameController>();
+        _spiderSpawner = FindObjectOfType<SpiderSpawner>();
     }
 
     private void OnMouseDown()
@@ -125,7 +125,7 @@ public class LineBuiding : MonoBehaviour
             else if (_secondLineCoords.Count * _yStep > 2)
             {
                 _instructionText.text = "Watch the spider weave its web";
-                _gameController.InstantiateSpider();
+                _spiderSpawner.InstantiateSpider(_firstLineCoords, _secondLineCoords);
                 StartCoroutine(HideUI());
             }
         }
@@ -140,9 +140,7 @@ public class LineBuiding : MonoBehaviour
         ChangeSizeOfNoClickArea(0);
     }
 
-    /// <summary>
-    /// Changes the size of the area that is not available for drawing so that the lines do not intersect.
-    /// </summary>
+    /// <summary>Changes the size of the area that is not available for drawing so that the lines do not intersect.</summary>
     private void ChangeSizeOfNoClickArea(int pointNumber)
     {
         if (pointNumber <= _firstLineCoords.Count - 1)

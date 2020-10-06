@@ -25,11 +25,15 @@ public class Thread : MonoBehaviour
     // TEMP
     bool _spiderIsAttached = false;
 
+    private void Awake()
+    {
+        _spider = FindObjectOfType<Spider>();
+    }
+
     void Start()
     {
         _lineRenderer = GetComponent<LineRenderer>();
         _edgeCollider2D = GetComponent<EdgeCollider2D>();
-        _spider = FindObjectOfType<Spider>();
         _wind = FindObjectOfType<Wind>();
         _forceGravity = FindObjectOfType<Gravity>().GetForceGravity();
     }
@@ -150,9 +154,7 @@ public class Thread : MonoBehaviour
         _threadSegments.Add(new ThreadSegment(coords));
     }
 
-    /// <summary>
-    /// Attaches the spider to the web.
-    /// </summary>
+    /// <summary>Attaches the spider to the web.</summary>
     private void Attach(Spider spider)
     {
         ThreadSegment threadSegment = _threadSegments[_threadSegments.Count - 1];
@@ -168,12 +170,10 @@ public class Thread : MonoBehaviour
         _threadSegments[_threadSegments.Count - 1] = threadSegment;
     }
 
-    /// <summary>
-    /// Attaches the web to a fixed point.
-    /// </summary>
+    /// <summary>Attaches the web to a fixed point.</summary>
     private void Attach(int pointNumber, Vector3 pointCoords)
     {
-        _attachedPoints[pointNumber] = pointCoords;
+        _attachedPoints[pointNumber] = new Vector3(pointCoords.x, pointCoords.y, _spider.transform.position.z);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

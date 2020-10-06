@@ -205,7 +205,7 @@ GameObject:
   - component: {fileID: 210861617}
   - component: {fileID: 210861616}
   m_Layer: 0
-  m_Name: Game Controller
+  m_Name: Spider Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -251,7 +251,7 @@ GameObject:
   - component: {fileID: 232322636}
   - component: {fileID: 232322635}
   - component: {fileID: 232322634}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: NoClick Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -794,7 +794,7 @@ GameObject:
   - component: {fileID: 1449146541}
   - component: {fileID: 1449146540}
   - component: {fileID: 1449146539}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Click Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1007,6 +1007,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pointPrefab: {fileID: 1944288832000110853, guid: 118618ad0bca5c74db3df4dbbe6ebcec,
     type: 3}
+  NeedWind: 0
 --- !u!4 &1952633899
 Transform:
   m_ObjectHideFlags: 0

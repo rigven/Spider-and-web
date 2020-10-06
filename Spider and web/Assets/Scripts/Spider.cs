@@ -21,7 +21,12 @@ public class Spider : MonoBehaviour
     private Vector3 _previousThreadPoint;
     private int _wovenThreadsNumber = 0;
     private bool _weavesThread = true;
+    private bool _goalAchieved = false;
     private float _shiftFromLastPoint = 0f;
+
+    // Event
+    public delegate void ReachedFirstPointEventHandler();
+    public event ReachedFirstPointEventHandler ReachedFirstPoint;
 
     void Start()
     {
@@ -59,8 +64,10 @@ public class Spider : MonoBehaviour
     {
         _rigidbody.velocity = new Vector2(0f, -DescentSpeed);
 
-        if (transform.position.y < HoveringFirstPoint)
+        if (!_goalAchieved && (transform.position.y < HoveringFirstPoint))
         {
+            ReachedFirstPoint();
+            _goalAchieved = true;
             _weavesThread = false;
             _currentThread.SetSpiderIsAttached(true);
             _rigidbody.velocity = new Vector2(0f, 0f);

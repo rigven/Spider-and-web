@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class Wind : MonoBehaviour
 {
+    // Cached component references
+    private Spider _spider;
+    private SpiderSpawner _spiderSpawner;
+
     // Config params
     [SerializeField] private GameObject _pointPrefab;
     private const int AccelerationTime = 3;
@@ -13,6 +17,8 @@ public class Wind : MonoBehaviour
     private float _speed = 0f;
     private float _amplitude = 0f;
     private float _stepFactor = 0f;
+    public bool NeedWind = false;
+
     // Drawing state
     protected float _lowerEdge = 0f;
     protected float _upperEdge = 0f;
@@ -36,13 +42,27 @@ public class Wind : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(GenerateParameters());
+        _spiderSpawner = FindObjectOfType<SpiderSpawner>();
+        _spiderSpawner.SpiderCreated += this.StartTrackingSpider;
     }
 
     // Update is called once per frame
     void Update()
     {
         ChangeSpeed();
+    }
+
+    private void StartTrackingSpider()
+    {
+        _spiderSpawner.SpiderCreated -= this.StartTrackingSpider;
+        _spider = FindObjectOfType<Spider>();
+        _spider.ReachedFirstPoint += this.StartGenerateParameters;
+    }
+
+    private void StartGenerateParameters()
+    {
+        _spider.ReachedFirstPoint -= this.StartGenerateParameters;
+        StartCoroutine(GenerateParameters());
     }
 
     private IEnumerator GenerateParameters()
@@ -81,7 +101,6 @@ public class Wind : MonoBehaviour
             _speed -= Time.deltaTime * _stepFactor;
         }
     }
-
 
     public Vector3 GetSpeed(float y)
     {
