@@ -171,7 +171,7 @@ public class Thread : MonoBehaviour
     }
 
     /// <summary>Attaches the web to a fixed point.</summary>
-    private void Attach(int pointNumber, Vector3 pointCoords)
+    public void Attach(int pointNumber, Vector3 pointCoords)
     {
         _attachedPoints[pointNumber] = new Vector3(pointCoords.x, pointCoords.y, _spider.transform.position.z);
     }
@@ -205,6 +205,12 @@ public class Thread : MonoBehaviour
     public bool CheckLastPointFluctuations()
     {
         return Mathf.Abs((_threadSegments[_threadSegments.Count - 1].PosNow - _threadSegments[_threadSegments.Count - 1].PosOld).magnitude) > MinFluctuation;
+    }
+
+    /// <summary>Returns the number of the last point.</summary>
+    public int GetLastPointNumber()
+    {
+        return _threadSegments.Count - 1;
     }
 
     public struct ThreadSegment

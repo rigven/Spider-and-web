@@ -21,7 +21,8 @@ public class Spider : MonoBehaviour
     private Vector3 _previousThreadPoint;
     private int _wovenThreadsNumber = 0;
     private bool _weavesThread = true;
-    private bool _goalAchieved = false;
+    private bool _firstPointReached = false;
+    //private bool _goalAchieved = false;
     private float _shiftFromLastPoint = 0f;
 
     // Event
@@ -64,18 +65,15 @@ public class Spider : MonoBehaviour
     {
         _rigidbody.velocity = new Vector2(0f, -DescentSpeed);
 
-        if (!_goalAchieved && (transform.position.y < HoveringFirstPoint))
+        if (!_firstPointReached && (transform.position.y < HoveringFirstPoint))
         {
-            ReachedFirstPoint();
-            _goalAchieved = true;
-            _weavesThread = false;
-            _currentThread.SetSpiderIsAttached(true);
-            _rigidbody.velocity = new Vector2(0f, 0f);
+            FinishInitialDescend();
         }
     }
 
     private void WeaveThread()
     {
+        //Debug.Log(ReachedFirstPoint);
         if (_weavesThread)
         {
             if (_currentThread == null)
@@ -89,6 +87,40 @@ public class Spider : MonoBehaviour
                 _previousThreadPoint = transform.position;
             }
         }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // If the spider touched the line on the first descent
+        if (_wovenThreadsNumber == 0)
+        {
+            if (!_firstPointReached)
+            {
+                FinishWeawing();
+                ReachedFirstPoint();
+            }
+
+            _currentThread.Attach(_currentThread.GetLastPointNumber(), collision.contacts[0].point);
+            _currentThread.SetSpiderIsAttached(false);
+            _wovenThreadsNumber++;
+
+            return;
+        }
+    }
+
+    private void FinishInitialDescend()
+    {
+        ReachedFirstPoint();
+        _firstPointReached = true;
+        FinishWeawing();
+
+        _currentThread.SetSpiderIsAttached(true);
+        _rigidbody.velocity = new Vector2(0f, 0f);
+    }
+
+    private void FinishWeawing()
+    {
+        _weavesThread = false;
     }
 
     private Thread InstantiateNewThread()
